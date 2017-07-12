@@ -10,7 +10,7 @@ sim(players, number of trials) runs the specified number of games and tracks the
 Hunted behavior:
 
 Only resists if no cards available, drawing back 2, or giving up if down to 1 will.
-Selects 1 (or 2, if River or Artefact turn) location from available locations.
+Randomly selects 1 (or 2, if River or Artefact turn) location from available locations.
 Lair will copy if 1 or less cards in discard, otherwise recovers discard pile.
 Jungle and Swamp will randomly recover a card.
 River attempt to select a non-creature location.
