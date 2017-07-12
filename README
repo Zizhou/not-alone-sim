@@ -1,0 +1,11 @@
+Naive player behavior simulator for the board game "Not Alone"
+
+main() runs a single, step by step game
+
+sim(players, number of trials) runs the specified number of games and tracks the respective winners
+
+TODO:
+
+-get the artemia phase working
+-do something about survival cards
+-make an interactive version?
