@@ -72,7 +72,10 @@ class Rover(Card):
                 if new_card != None:
                     player.hand.append(new_card)
                     print 'adding ' + unicode(new_card.name)
+                    player.not_in_hand.remove(location)
                     break
+            
+
 
 class Swamp(Card):
     name = 'Swamp'
@@ -113,7 +116,9 @@ class Source(Card):
             if x.will < 3:
                 injured.append(x)
         if len(injured) > 0:
-            random.choice(injured).will += 1
+            healed = random.choice(injured)
+            healed.will += 1
+            print 'healed player ' + unicode(healed.id_number)
         else:
             print 'abstract survival card'
 
@@ -298,7 +303,7 @@ class Player(object):
             if x.location_id == alien_pick[0]:
                 x.caught(self)
                 self.caught()
-            elif x.location_id == alien_pick[1] and self.game.rescue <=6:
+            elif x.location_id == alien_pick[1] and self.game.rescue_count <=6:
                 x.discard()
                 self.artemia()
             else:
@@ -383,7 +388,7 @@ class Game(object):
 
         print 'artemia ' + unicode(self.artemia_count)
         print '====================='
-        if self.artemia_count <= 0:
+        if self.artemia_count <= 0 and self.artemia_count < self.rescue_count:
             print '*****alien wins*****'
             return True
         elif self.rescue_count <= 0:
