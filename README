@@ -1,11 +1,42 @@
 Naive player behavior simulator for the board game "Not Alone"
 
-main() runs a single, step by step game
+main() returns a single game object
+    not_alone() for a step by step game
+    sim() for a full simulated game
 
 sim(players, number of trials) runs the specified number of games and tracks the respective winners
 
+
+Hunted behavior:
+
+Only resists if no cards available, drawing back 2, or giving up if down to 1 will.
+Selects 1 (or 2, if River or Artefact turn) location from available locations.
+Lair will copy if 1 or less cards in discard, otherwise recovers discard pile.
+Jungle and Swamp will randomly recover a card.
+River attempt to select a non-creature location.
+Rover will randomly select a card.
+Shelter currently does nothing.
+Source will heal a random player who is missing Will or do nothing if there are no 'injured' players.
+
+Alien behavior:
+
+Combines all possible locations available to the hunted into one pool and selects randomly. Attempts to maximize odds of catching any player, but currently does not take into account individual hunted hands(i.e. will not target a player with only 1 possible location left).
+Artemia token is placed in another random location from the pool that is different from the creature token location.
+
+Conclusions:
+
+With naive behavior on the part of both hunted and alien, the game appears to be weighted towards the hunted. Obviously, in a real game, intelligent location selection will skew results, as will survival and hunt cards. However, it appears that random selection is a viable hunted strategy in the long term, assuming that RNG balances out the lack of conscious strategy in the sim. 
+
+Approximate alien wins after 100,000 simulated games:
+
+1 hunted: 15%
+2 hunted: 20%
+3 hunted: 25%
+4 hunted: 28%
+5 hunted: 30%
+6 hunted: 30%
+
 TODO:
 
--get the artemia phase working
 -do something about survival cards
 -make an interactive version?
