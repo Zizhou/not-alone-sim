@@ -1,4 +1,5 @@
 import random
+DISPLAY_OUTPUT = True
 
 class Card(object):
     played = False
@@ -9,15 +10,15 @@ class Card(object):
         return self.name
 
     def ability(self, player):
-        print 'hello ' + unicode(player.id_number)
+        if DISPLAY_OUTPUT: print 'hello ' + unicode(player.id_number)
 
     def play(self, player):
         if self.played:
-            print 'something went wrong'
+            if DISPLAY_OUTPUT: print 'something went wrong'
             return self
         else:
             self.played = True
-            print 'played ' + unicode(self.name)
+            if DISPLAY_OUTPUT: print 'played ' + unicode(self.name)
             self.ability(player)
             return self
     
@@ -26,12 +27,12 @@ class Card(object):
     
     def discard(self):
         self.played = True
-        print 'discarded ' + unicode(self.name)
+        if DISPLAY_OUTPUT: print 'discarded ' + unicode(self.name)
 
     def recover(self):
         if self.played == True:
             self.played = False
-            print 'recovered ' + self.name
+            if DISPLAY_OUTPUT: print 'recovered ' + self.name
 
 class Jungle(Card):
     name = 'Jungle'
@@ -71,7 +72,7 @@ class Rover(Card):
                 new_card = player.game.rover.get_location_or_none(location)
                 if new_card != None:
                     player.hand.append(new_card)
-                    print 'adding ' + unicode(new_card.name)
+                    if DISPLAY_OUTPUT: print 'adding ' + unicode(new_card.name)
                     player.not_in_hand.remove(location)
                     break
             
@@ -95,9 +96,9 @@ class Shelter(Card):
     name = 'Shelter'
     location_id = 6
 
-    #TODO
     def ability(self, player):
-        print 'how to abstract survival cards? fractional rescue points?'
+        player.survival_card()
+        player.survival_card()
 
 class Wreck(Card):
     name = 'Wreck'
@@ -118,9 +119,10 @@ class Source(Card):
         if len(injured) > 0:
             healed = random.choice(injured)
             healed.will += 1
-            print 'healed player ' + unicode(healed.id_number)
+            if DISPLAY_OUTPUT: print 'healed player ' + unicode(healed.id_number)
         else:
-            print 'abstract survival card'
+            if DISPLAY_OUTPUT: print 'abstract survival card'
+            player.survival_card()
 
 class Artefact(Card):
     name = 'Artefact'
@@ -151,13 +153,10 @@ class Lair(Card):
                     x.recover()
         else:
             if player.alien_loc != 9:
-                print 'copying The ' + unicode(self.copy_abilities[player.alien_loc].name) 
+                if DISPLAY_OUTPUT: print 'copying The ' + unicode(self.copy_abilities[player.alien_loc].name) 
                 loc = self.copy_abilities[player.alien_loc].ability(player)
             elif player.alien_loc == 9:
-                print 'cannot copy the Artefact'
-
-
-
+                if DISPLAY_OUTPUT: print 'cannot copy the Artefact'
 
 class RoverDeck(object):
     deck = []
@@ -184,11 +183,11 @@ class RoverDeck(object):
         for index, item in enumerate(self.deck):
             if item.location_id == location_id:
                 deck_index = index
-                print index
+                if DISPLAY_OUTPUT: print index
                 break
         if deck_index != None:
             location = self.deck.pop(deck_index)
-        print location
+        if DISPLAY_OUTPUT: print location
         return location
 
 class Alien(object):
@@ -216,7 +215,7 @@ class Alien(object):
                 if card.played == False:
                     self.locations.append(card.location_id)
         self.locations.sort()
-        print self.locations
+        if DISPLAY_OUTPUT: print self.locations
 
 
 class Player(object):
@@ -250,7 +249,7 @@ class Player(object):
     def resist(self):
         self.will -= 1
         if not self.will_zero():
-            print 'resisting(' + unicode(self.will) + ')'
+            if DISPLAY_OUTPUT: print 'resisting(' + unicode(self.will) + ')'
             discard = []
             for x in self.hand:
                 if x.played == True:
@@ -267,14 +266,14 @@ class Player(object):
 
     def will_zero(self):
         if self.will <= 0:
-            print 'giving up'
+            if DISPLAY_OUTPUT: print 'giving up'
             self.giveup()
             return True
         else:
             return False
 
     def select_card(self):
-        print 'river ' + unicode(self.river_turn)
+        if DISPLAY_OUTPUT: print 'river ' + unicode(self.river_turn)
         self.current_selection = []
         playable = self.get_available_cards()
         if playable == []:
@@ -309,9 +308,8 @@ class Player(object):
             else:
                 x.play(self)
 
-
     def artemia(self):
-        print 'artemia-ed player ' + unicode(self.id_number) + '(' + unicode(self.will) + ')'
+        if DISPLAY_OUTPUT: print 'artemia-ed player ' + unicode(self.id_number) + '(' + unicode(self.will) + ')'
         self.will_zero()
         discard_one = self.get_available_cards() 
         if len(discard_one) > 0:
@@ -319,22 +317,26 @@ class Player(object):
 
     def caught(self):
         self.will -= 1
-        print 'caught player ' + unicode(self.id_number) + '(' + unicode(self.will) + ')'
+        if DISPLAY_OUTPUT: print 'caught player ' + unicode(self.id_number) + '(' + unicode(self.will) + ')'
 
         #special will_zero/giveup for the edge case single artemia advance due to total will loss in phase 3
         if self.will <= 0:
-            print 'giving up'
+            if DISPLAY_OUTPUT: print 'giving up'
             self.will = 3
             for x in self.hand:
                 x.recover()
             if not self.game.will_loss_this_turn:
                 self.game.artemia()
-                self.game.will_loss_this_turn = True
+                self.game.will_loss_this_turn = True 
 
         if not self.game.caught_this_turn:
             self.game.caught_this_turn = True
             self.game.artemia()
 
+    def survival_card(self):
+        if random.random() < self.game.hunt_card_value:
+            self.game.rescue_count -= self.game.survival_card_value
+            if DISPLAY_OUTPUT: print 'abstracted survival card(rescue ' + unicode(self.game.rescue_count) + ')'
 
 class Game(object):
     hunted = []
@@ -348,7 +350,10 @@ class Game(object):
     beach_marker_on = False
     wreck_this_turn = False
 
-    def __init__(self, hunted, rover, alien):
+    hunt_card_value = 0
+    survival_card_value = 0
+
+    def __init__(self, hunted, rover, alien, hunt_val, survive_val):
         self.hunted = hunted
         for x in self.hunted:
             x.init_game(self)
@@ -356,58 +361,69 @@ class Game(object):
         self.alien = alien
         self.rescue_count = 12 + len(hunted)
         self.artemia_count = 6 + len(hunted)
+        self.hunt_card_value = hunt_val
+        self.survival_card_value = survive_val
 
     def phase_1(self):
         for x in self.hunted:
             x.select_card()
-            print x.current_selection
+            if DISPLAY_OUTPUT: print x.current_selection
         self.alien.evaluate(self.hunted)
-        print 'phase 1 complete'
+        if DISPLAY_OUTPUT: print 'phase 1 complete'
 
     def phase_2(self):
         self.alien.pick()
-        print self.alien.current_selection
-        print 'phase 2 complete'
+        if DISPLAY_OUTPUT: print self.alien.current_selection
+        if DISPLAY_OUTPUT: print 'phase 2 complete'
 
     def phase_3(self):
         for x in self.hunted:
             x.play(self.alien.current_selection)
         if self.beach_this_turn and self.beach_marker_on:
-            print 'beach beacon activated'
+            if DISPLAY_OUTPUT: print 'beach beacon activated'
             self.rescue()
             self.beach_marker_on = False
         elif self.beach_this_turn and not self.beach_marker_on:
-            print 'beach beacon primed'
+            if DISPLAY_OUTPUT: print 'beach beacon primed'
             self.beach_marker_on = True
         if self.wreck_this_turn:
-            print 'wreck beacon activated'
+            if DISPLAY_OUTPUT: print 'wreck beacon activated'
             self.rescue()
 
     def phase_4(self):
         self.rescue()
-
-        print 'artemia ' + unicode(self.artemia_count)
-        print '====================='
+        self.play_hunt_card()
+        if DISPLAY_OUTPUT: print 'artemia ' + unicode(self.artemia_count)
+        if DISPLAY_OUTPUT: print '===================='
         if self.artemia_count <= 0 and self.artemia_count < self.rescue_count:
-            print '*****alien wins*****'
+            if DISPLAY_OUTPUT: print '*****alien wins*****'
+            if DISPLAY_OUTPUT: print '===================='
             return True
         elif self.rescue_count <= 0:
-            print '*****hunted win*****'
+            if DISPLAY_OUTPUT: print '*****hunted win*****'
+            if DISPLAY_OUTPUT: print '===================='
             return False
         #cleanup
         self.will_loss_this_turn = False
         self.caught_this_turn = False
         self.beach_this_turn = False
         self.wreck_this_turn = False
+
+        #simulated hunt cards
         return False
     
     def artemia(self):
         self.artemia_count -= 1
-        print 'artemia ' + unicode(self.artemia_count)
+        if DISPLAY_OUTPUT: print 'artemia ' + unicode(self.artemia_count)
 
     def rescue(self):
         self.rescue_count -= 1
-        print 'rescue ' + unicode(self.rescue_count)
+        if DISPLAY_OUTPUT: print 'rescue ' + unicode(self.rescue_count)
+
+    def play_hunt_card(self):
+        if random.random() < self.hunt_card_value:
+            if DISPLAY_OUTPUT: print 'successful hunt card'
+            self.artemia()
 
     def not_alone(self):
         while self.artemia_count > 0 and self.rescue_count > 0:
@@ -431,6 +447,8 @@ class Game(object):
 
 def main():
     players = input('how many hunted(1-6)')
+    hunt_val = input('hunt card value')
+    survive_val = input('survival card value')
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     hunted = []
     for x in range(players):
@@ -439,15 +457,17 @@ def main():
     rover = RoverDeck(players)
     alien = Alien()
 
-    return Game(hunted, rover, alien)
+    return Game(hunted, rover, alien, hunt_val, survive_val)
 
 
-def sim(players, trials):
+def sim(players, trials, hunt_val=0, survive_val=0, display = True):
+    global DISPLAY_OUTPUT 
+    DISPLAY_OUTPUT = display
     artemia = 0
     humans = 0
     for x in range(0,trials):
         players = players
-        print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+        if DISPLAY_OUTPUT: print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
         hunted = []
         for x in range(players):
             player = Player(x)
@@ -455,7 +475,7 @@ def sim(players, trials):
         rover = RoverDeck(players)
         alien = Alien()
 
-        game = Game(hunted, rover, alien)
+        game = Game(hunted, rover, alien, hunt_val, survive_val)
 
         if game.sim():
             artemia += 1
@@ -464,3 +484,12 @@ def sim(players, trials):
     print unicode(trials) + ' trial(s)'
     print 'artemia won ' + unicode(artemia)
     print 'hunted won ' + unicode(humans)
+    results = {
+        'players': players, 
+        'rounds': trials, 
+        'artemia': artemia, 
+        'hunted':humans,
+        'hunt card value': hunt_val,
+        'survival card value': survive_val,
+    }
+    return results

@@ -1,11 +1,14 @@
 Naive player behavior simulator for the board game "Not Alone"
 
-main() returns a single game object
-    not_alone() for a step by step game
-    sim() for a full simulated game
+main() 
+    returns a single game object
+    .not_alone() for a step by step game
+    .sim() for a full simulated game
 
-sim(players, number of trials) runs the specified number of games and tracks the respective winners
-
+sim(players, number of trials, [hunt card value], [survival card value], [output visible]) 
+    runs the specified number of games and tracks the respective winners
+    
+Survival cards and Hunt cards are abstracted into a percentage chance to advance the respective token. The success rate of each one can be individually adjusted.
 
 Hunted behavior:
 
@@ -38,5 +41,4 @@ Approximate alien wins after 100,000 simulated games:
 
 TODO:
 
--do something about survival cards
 -make an interactive version?
